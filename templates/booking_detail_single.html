@@ -182,17 +182,6 @@
                 <i class="bi bi-info-circle me-2"></i>
                 {{ _('Deposit is still pending. Complete the %(amount)s VND VNPay payment from your email or reach out to our team for support.', amount="{:,.0f}".format(deposit_amount or balance_amount or booking.total_amount)) }}
               </div>
-            {% elif payment_method == 'bank_transfer' %}
-              <div class="alert alert-warning">
-                <i class="bi bi-bank me-2"></i>
-                {{ _('Deposit is pending. Transfer %(amount)s VND via bank transfer so we can confirm your booking.', amount="{:,.0f}".format(deposit_amount or balance_amount or booking.total_amount)) }}
-              </div>
-              {% if booking.payment_reference %}
-                <p class="small text-muted ms-1 mb-2"><i class="bi bi-hash"></i> {{ _('Transfer content:') }} <strong>{{ booking.payment_reference }}</strong></p>
-              {% endif %}
-              <a href="{{ url_for('booking.bank_transfer_instructions', lang=lang, booking_id=booking.id) }}" class="btn btn-outline-success btn-sm mt-2">
-                <i class="bi bi-qr-code"></i> {{ _('View bank transfer instructions') }}
-              </a>
             {% else %}
               <div class="alert alert-warning">
                 <i class="bi bi-cash-stack me-2"></i>

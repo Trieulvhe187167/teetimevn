@@ -77,7 +77,6 @@
                   type="button" id="langDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <img src="{{ url_for('static', filename='flags/' ~ current[2] ~ '.svg') }}"
                  alt="{{ current[1] }} flag" width="20" class="me-2">
-            <span>{{ current[1] }}</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
             {% for code,label,flag in langs %}
@@ -95,8 +94,10 @@
 
         {% if session.get('user_id') %}
           <!-- Nếu đã đăng nhập: Hiển thị dropdown user -->
+      
           <div class="dropdown">
             <button class="btn btn-light dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <span class="text-secondary me-2">{{ _('Welcome') }}</span>
               <i class="bi bi-person-circle me-1"></i> {{ session.get('username') }}
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -211,19 +212,15 @@
        ============================================================ -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      <div class="container px-0">
-        <div class="row">
-          <div class="col-12 d-flex justify-content-end px-0">
-            {% for category, message in messages %}
-              {% if category != 'login-error' %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show compact-flash" role="alert">
-                  {{ message }}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-              {% endif %}
-            {% endfor %}
-          </div>
-        </div>
+      <div class="flash-stack">
+        {% for category, message in messages %}
+          {% if category != 'login-error' %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show compact-flash" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endif %}
+        {% endfor %}
       </div>
     {% endif %}
   {% endwith %}

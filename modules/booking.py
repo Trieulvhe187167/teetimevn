@@ -3,7 +3,6 @@
 from datetime import datetime, timedelta
 from functools import wraps
 import sqlite3
-from urllib.parse import quote_plus
 
 from flask import (
     Blueprint,
@@ -322,18 +321,13 @@ def send_booking_email(booking_data: dict) -> bool:
     payment_method_key = (booking_data.get('payment_method') or 'pay_on_arrival')
     payment_method_label = {
         'vnpay_deposit': _('VNPay deposit'),
-        'bank_transfer': _('Bank transfer deposit'),
         'pay_on_arrival': _('Pay at course'),
     }.get(payment_method_key, _('Pay at course'))
     deposit_block = ''
     if booking_data.get('deposit_amount'):
-        transfer_note = ''
-        if payment_method_key == 'bank_transfer' and booking_data.get('payment_reference'):
-            transfer_note = f"<li><strong>Transfer content:</strong> {booking_data['payment_reference']}</li>"
         deposit_block = (
             f"<li><strong>Deposit:</strong> {booking_data['deposit_amount']:,.0f} VND</li>"
             f"<li><strong>Balance Due:</strong> {booking_data['balance_due']:,.0f} VND</li>"
-            f"{transfer_note}"
         )
     html_body = f"""
     <h2>New Booking Received</h2>
@@ -635,22 +629,20 @@ def booking(lang):
             deposit_percent = _get_deposit_percent()
             deposit_supported = deposit_percent > 0 and total_amount_int > 0
             wants_vnpay_deposit = payment_option == 'vnpay_deposit'
-            wants_bank_transfer = payment_option == 'bank_transfer'
             deposit_amount = 0
             payment_method = 'pay_on_arrival'
             payment_gateway = None
-            if deposit_supported and (wants_vnpay_deposit or wants_bank_transfer):
+            if deposit_supported and wants_vnpay_deposit:
                 deposit_amount = _calculate_deposit_amount(pricing['total_amount'])
                 if deposit_amount > 0:
-                    payment_method = 'vnpay_deposit' if wants_vnpay_deposit else 'bank_transfer'
-                    payment_gateway = 'vnpay' if wants_vnpay_deposit else 'bank_transfer'
+                    payment_method = 'vnpay_deposit'
+                    payment_gateway = 'vnpay'
                 else:
                     deposit_amount = 0
             balance_due = max(total_amount_int - deposit_amount, 0)
             payment_status = 'unpaid'
             paid_amount = 0
             is_vnpay_deposit = payment_method == 'vnpay_deposit'
-            is_bank_transfer_deposit = payment_method == 'bank_transfer'
 
             cursor = db.execute(
                 """
@@ -690,12 +682,6 @@ def booking(lang):
             payment_reference = None
             if is_vnpay_deposit:
                 payment_reference = generate_vnpay_txn_ref(booking_id)
-                db.execute(
-                    "UPDATE bookings SET payment_reference = ?, updated_at = datetime('now') WHERE id = ?",
-                    (payment_reference, booking_id),
-                )
-            elif is_bank_transfer_deposit:
-                payment_reference = f"TT{booking_id:06d}"
                 db.execute(
                     "UPDATE bookings SET payment_reference = ?, updated_at = datetime('now') WHERE id = ?",
                     (payment_reference, booking_id),
@@ -757,10 +743,6 @@ def booking(lang):
                 flash(_('Booking created. Please complete the VNPay deposit to confirm.'), 'info')
                 return redirect(payment_url)
 
-            if is_bank_transfer_deposit:
-                flash(_('Booking created. Please complete the bank transfer deposit to confirm.'), 'info')
-                return redirect(url_for('booking.bank_transfer_instructions', lang=lang, booking_id=booking_id))
-
             flash(_('Booking successful! Please pay at the course to complete your check-in on the day of play.'), 'success')
             return redirect(url_for('booking.booking_detail', lang=lang, booking_id=booking_id))
 
@@ -789,84 +771,6 @@ def booking(lang):
         deposit_percent=_get_deposit_percent(),
     )
 
-
-
-@booking_bp.route('/bank-transfer/<int:booking_id>')
-@login_required
-def bank_transfer_instructions(lang, booking_id):
-    db = g.db
-    user_id = session.get('user_id')
-
-    row = db.execute(
-        """
-        SELECT b.*, gc.slug, gci.name AS course_name, gci.address,
-               u.username, u.fullname, u.email, u.phone
-        FROM bookings b
-        JOIN golf_course gc ON b.course_id = gc.id
-        JOIN golf_course_i18n gci ON gc.id = gci.course_id AND gci.lang = ?
-        JOIN users u ON b.user_id = u.id
-        WHERE b.id = ? AND b.user_id = ?
-        """,
-        (lang, booking_id, user_id),
-    ).fetchone()
-
-    if not row:
-        flash(_('Booking not found or you do not have permission to view it.'), 'danger')
-        return redirect(url_for('booking.my_bookings', lang=lang))
-
-    booking = _enrich_booking(row)
-    if booking.get('payment_method') != 'bank_transfer':
-        flash(_('This booking does not require a bank transfer deposit.'), 'warning')
-        return redirect(url_for('booking.booking_detail', lang=lang, booking_id=booking_id))
-
-    deposit_amount = booking.get('deposit_amount') or _calculate_deposit_amount(booking.get('total_amount') or 0)
-    if deposit_amount <= 0:
-        flash(_('Deposit amount is not available. Please contact support.'), 'warning')
-        return redirect(url_for('booking.booking_detail', lang=lang, booking_id=booking_id))
-
-    config = current_app.config
-    account_number = (config.get('BANK_TRANSFER_ACCOUNT_NUMBER') or '').strip()
-    account_name = (config.get('BANK_TRANSFER_ACCOUNT_NAME') or '').strip()
-    bank_name = (config.get('BANK_TRANSFER_BANK_NAME') or '').strip()
-    bank_code = (config.get('BANK_TRANSFER_BANK_CODE') or '').strip() or 'VCB'
-
-    if not account_number or not account_name:
-        flash(_('Bank transfer details are not available. Please contact support.'), 'danger')
-        return redirect(url_for('booking.booking_detail', lang=lang, booking_id=booking_id))
-
-    transfer_content = booking.get('payment_reference') or f"TT{booking_id:06d}"
-
-    qr_template = (config.get('BANK_TRANSFER_QR_URL') or '').strip()
-    if qr_template and ('{amount}' in qr_template or '{info}' in qr_template):
-        qr_url = qr_template.format(amount=deposit_amount, info=transfer_content)
-    elif qr_template:
-        qr_url = qr_template
-    else:
-        base_url = f"https://img.vietqr.io/image/{bank_code}-{account_number}-compact.png"
-        params = []
-        if deposit_amount:
-            params.append(f"amount={deposit_amount}")
-        if transfer_content:
-            params.append(f"addInfo={quote_plus(transfer_content)}")
-        qr_url = base_url if not params else f"{base_url}?{'&'.join(params)}"
-
-    payment_details = {
-        'account_number': account_number,
-        'account_name': account_name,
-        'bank_name': bank_name or _('Vietcombank'),
-        'bank_code': bank_code or 'VCB',
-        'qr_url': qr_url,
-        'transfer_content': transfer_content,
-        'deposit_amount': deposit_amount,
-        'total_amount': booking.get('total_amount') or 0,
-    }
-
-    return render_template(
-        'payment_bank_transfer.html',
-        lang=lang,
-        booking=booking,
-        payment_details=payment_details,
-    )
 
 
 @booking_bp.route('/availability')

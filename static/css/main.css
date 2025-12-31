@@ -532,28 +532,62 @@ footer {
 /* ----------------------------------------------------
    Flash nhỏ gọn (compact) nằm dưới header, căn phải
    ---------------------------------------------------- */
+.flash-stack {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
 .compact-flash {
-  display: inline-flex !important;       
-  align-items: center !important;        
+  display: inline-flex !important;
+  align-items: center !important;
   justify-content: space-between !important;
-  padding: 0.25rem 0.75rem !important;    
-  margin: 0 !important;            
-  font-size: 0.9rem !important;           
-  border-radius: 0.25rem !important;      
-  max-width: 320px !important;            
-  width: auto !important;                 /* Ép auto thay vì full */
-  background-color: #d4edda !important;   
-  border: 1px solid #c3e6cb !important;   
-  color: #155724 !important;              
-  position: relative !important;          
-  z-index: 1000 !important;               
+  padding: 0.6rem 0.85rem !important;
+  margin: 0 !important;
+  font-size: 0.95rem !important;
+  border-radius: 0.5rem !important;
+  max-width: 420px !important;
+  width: auto !important;
+  background-color: rgba(212, 237, 218, 0.92) !important;
+  border: 1px solid rgba(195, 230, 203, 0.9) !important;
+  color: #155724 !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  position: relative !important;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.compact-flash.alert-info {
+  background-color: rgba(209, 236, 241, 0.95) !important;
+  border-color: rgba(190, 229, 235, 0.9) !important;
+  color: #0c5460 !important;
+}
+
+.compact-flash.alert-warning {
+  background-color: rgba(255, 243, 205, 0.95) !important;
+  border-color: rgba(255, 238, 186, 0.9) !important;
+  color: #856404 !important;
+}
+
+.compact-flash.alert-danger {
+  background-color: rgba(248, 215, 218, 0.95) !important;
+  border-color: rgba(245, 198, 203, 0.9) !important;
+  color: #721c24 !important;
 }
 
 .compact-flash .btn-close {
   position: static !important;
-  margin-left: 0.5rem !important;
-  width: 1rem !important;
-  height: 0.5rem !important;
+  margin-left: 0.75rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
   opacity: 0.75 !important;
   flex-shrink: 0 !important;
 }
@@ -567,33 +601,18 @@ footer {
   /* ------------------------------------------------------------
        (A) Style cho flash‐success (“compact” dưới header):
        ------------------------------------------------------------ */
+    .flash-stack {
+      right: 0.75rem;
+      left: 0.75rem;
+      top: 0.75rem;
+      align-items: flex-end;
+    }
     .compact-flash {
-      display: inline-flex;           /* Cho flash co lại vừa chữ và nút */
-      align-items: center;            /* Căn giữa theo chiều dọc */
-      justify-content: space-between; /* Text trái, nút phải */
-      padding: 0.25rem 0.75rem;       /* Thu gọn padding */
-      margin: 0.5rem 0;               /* Cách header 0.5rem, hai bên 0 */
-      font-size: 0.9rem;              /* Chữ nhỏ hơn bình thường */
-      border-radius: 0.25rem;         /* Bo góc nhẹ */
-      max-width: 320px;               /* Giới hạn chiều rộng */
-      width: auto !important;         /* Auto rộng vừa nội dung */
-      background-color: #d4edda;      /* Màu nền alert-success */
-      border: 1px solid #c3e6cb;      /* Border alert-success */
-      color: #155724;                 /* Màu chữ alert-success */
-      position: relative;             /* Để không bị đè bởi thứ khác */
-      z-index: 1000;
+      width: min(100%, 420px) !important;
+      padding: 0.55rem 0.75rem !important;
     }
     .compact-flash .btn-close {
-      position: static !important;    /* Hủy position:absolute của Bootstrap */
-      margin-left: 0.5rem;            /* Cách text một chút */
-      width: 1rem;
-      height: 1rem;
-      opacity: 0.75;
-      flex-shrink: 0;                 /* Không co nhỏ nút × */
-    }
-    .compact-flash .btn-close:hover,
-    .compact-flash .btn-close:focus {
-      opacity: 1;
+      margin-left: 0.5rem !important;
     }
 
     /* ------------------------------------------------------------

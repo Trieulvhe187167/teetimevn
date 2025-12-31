@@ -167,13 +167,6 @@
                 </label>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="payment_option" id="payment-bank" value="bank_transfer">
-                <label class="form-check-label" for="payment-bank">
-                  {{ _('Pay %(percent)s%% deposit via bank transfer (Vietcombank)', percent=deposit_percent) }}
-                  <span class="d-block text-muted small" id="payment-bank-summary"></span>
-                </label>
-              </div>
-              <div class="form-check">
                 <input class="form-check-input" type="radio" name="payment_option" id="payment-arrival" value="pay_on_arrival">
                 <label class="form-check-label" for="payment-arrival">
                   {{ _('Pay at the course (booking stays pending until staff confirm)') }}
@@ -258,10 +251,8 @@
     balanceLabelDeposit: {{ _('Balance due at course')|tojson }},
     balanceLabelArrival: {{ _('Total to pay at course')|tojson }},
     depositNoteVnpay: {{ _('Pay %(amount)s VND via VNPay now and settle the remainder at the clubhouse.', amount='%(amount)s')|tojson }},
-    depositNoteBank: {{ _('Transfer %(amount)s VND to our Vietcombank account. We will confirm once received.', amount='%(amount)s')|tojson }},
     payLaterNote: {{ _('Pay the full amount at the course. Your booking remains pending until staff confirm.')|tojson }},
-    depositOptionSummaryVnpay: {{ _('Pay %(amount)s VND via VNPay now.', amount='%(amount)s')|tojson }},
-    depositOptionSummaryBank: {{ _('Transfer %(amount)s VND via bank transfer now.', amount='%(amount)s')|tojson }}
+    depositOptionSummaryVnpay: {{ _('Pay %(amount)s VND via VNPay now.', amount='%(amount)s')|tojson }}
   };
   const currencySymbol = ' VND';
 
@@ -286,7 +277,6 @@
   const balanceValue = document.getElementById('sum-balance');
   const paymentNote = document.getElementById('payment-summary-note');
   const depositOptionSummary = document.getElementById('payment-deposit-summary');
-  const bankTransferSummary = document.getElementById('payment-bank-summary');
 
   let availabilityRequestId = 0;
 
@@ -313,7 +303,6 @@
     if (balanceValue) balanceValue.textContent = fmt(0);
     if (paymentNote) paymentNote.textContent = '';
     if (depositOptionSummary) depositOptionSummary.textContent = '';
-    if (bankTransferSummary) bankTransferSummary.textContent = '';
   }
   function updateSummary() {
     const dateValue = dateInput.value;
@@ -368,11 +357,9 @@
 
     const depositLabelTemplate = (labels.depositLabel || '').toString();
     const depositNoteVnpay = (labels.depositNoteVnpay || labels.depositNote || '').toString();
-    const depositNoteBank = (labels.depositNoteBank || labels.depositNote || '').toString();
     const depositSummaryVnpay = (labels.depositOptionSummaryVnpay || labels.depositOptionSummary || '').toString();
-    const depositSummaryBank = (labels.depositOptionSummaryBank || labels.depositOptionSummary || '').toString();
 
-    if (depositPercent > 0 && (selectedPayment === 'vnpay_deposit' || selectedPayment === 'bank_transfer')) {
+    if (depositPercent > 0 && selectedPayment === 'vnpay_deposit') {
       depositAmount = Math.max(Math.round(total * depositPercent / 100), 0);
       balanceAmount = Math.max(total - depositAmount, 0);
       if (depositRow) depositRow.classList.remove('d-none');
@@ -380,21 +367,13 @@
         depositLabelEl.textContent = depositLabelTemplate.replace('%(percent)s', depositPercent);
       }
       if (balanceLabelEl) balanceLabelEl.textContent = labels.balanceLabelDeposit;
-      if (selectedPayment === 'vnpay_deposit') {
-        if (paymentNote && depositNoteVnpay) paymentNote.textContent = depositNoteVnpay.replace('%(amount)s', depositAmount.toLocaleString('vi-VN'));
-        if (depositOptionSummary && depositSummaryVnpay) depositOptionSummary.textContent = depositSummaryVnpay.replace('%(amount)s', depositAmount.toLocaleString('vi-VN'));
-        if (bankTransferSummary) bankTransferSummary.textContent = '';
-      } else {
-        if (paymentNote && depositNoteBank) paymentNote.textContent = depositNoteBank.replace('%(amount)s', depositAmount.toLocaleString('vi-VN'));
-        if (bankTransferSummary && depositSummaryBank) bankTransferSummary.textContent = depositSummaryBank.replace('%(amount)s', depositAmount.toLocaleString('vi-VN'));
-        if (depositOptionSummary) depositOptionSummary.textContent = '';
-      }
+      if (paymentNote && depositNoteVnpay) paymentNote.textContent = depositNoteVnpay.replace('%(amount)s', depositAmount.toLocaleString('vi-VN'));
+      if (depositOptionSummary && depositSummaryVnpay) depositOptionSummary.textContent = depositSummaryVnpay.replace('%(amount)s', depositAmount.toLocaleString('vi-VN'));
     } else {
       if (depositRow) depositRow.classList.add('d-none');
       if (balanceLabelEl) balanceLabelEl.textContent = labels.balanceLabelArrival;
       if (paymentNote) paymentNote.textContent = labels.payLaterNote;
       if (depositOptionSummary) depositOptionSummary.textContent = '';
-      if (bankTransferSummary) bankTransferSummary.textContent = '';
       depositAmount = 0;
       balanceAmount = total;
     }

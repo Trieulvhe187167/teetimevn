@@ -10,8 +10,8 @@ FAQ_ITEMS = [
         'vi': ("Làm sao để đặt giờ chơi?", "Chọn sân, ngày giờ, điền thông tin và gửi. Chúng tôi sẽ xác nhận qua email hoặc chat trong thời gian ngắn."),
     }),
     ("payment-methods", 20, {
-        'en': ("What payment methods are available?", "We support bank transfer and selected e‑wallets. International cards can be arranged on request."),
-        'vi': ("Có những phương thức thanh toán nào?", "Hỗ trợ chuyển khoản và một số ví điện tử. Thẻ quốc tế có thể sắp xếp theo yêu cầu."),
+        'en': ("What payment methods are available?", "We support VNPay deposits or you can pay at the course. International cards can be arranged on request."),
+        'vi': ("C? nh?ng ph??ng th?c thanh to?n n?o?", "H? tr? ??t c?c qua VNPay ho?c thanh to?n tr?c ti?p t?i s?n. Th? qu?c t? c? th? s?p x?p theo y?u c?u."),
     }),
     ("currency-fx", 30, {
         'en': ("Which currency do you charge in?", "Prices are shown in VND. For reference, we display your selected currency using our latest FX rates."),

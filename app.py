@@ -46,14 +46,6 @@ def create_app():
     app.config.setdefault('VNPAY_PAYMENT_URL', os.environ.get('VNPAY_PAYMENT_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'))
     app.config.setdefault('VNPAY_RETURN_URL', os.environ.get('VNPAY_RETURN_URL'))
     app.config.setdefault('VNPAY_IPN_URL', os.environ.get('VNPAY_IPN_URL'))
-
-
-
-    app.config.setdefault('BANK_TRANSFER_ACCOUNT_NUMBER', os.environ.get('BANK_TRANSFER_ACCOUNT_NUMBER', '1024520080'))
-    app.config.setdefault('BANK_TRANSFER_ACCOUNT_NAME', os.environ.get('BANK_TRANSFER_ACCOUNT_NAME', 'LE VAN TRIEU'))
-    app.config.setdefault('BANK_TRANSFER_BANK_NAME', os.environ.get('BANK_TRANSFER_BANK_NAME', 'Vietcombank'))
-    app.config.setdefault('BANK_TRANSFER_BANK_CODE', os.environ.get('BANK_TRANSFER_BANK_CODE', 'VCB'))
-    app.config.setdefault('BANK_TRANSFER_QR_URL', os.environ.get('BANK_TRANSFER_QR_URL', ''))
     # Khởi tạo Mail với app
     mail.init_app(app)
 

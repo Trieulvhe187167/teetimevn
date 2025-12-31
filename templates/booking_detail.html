@@ -50,13 +50,6 @@
                   <p class="mb-2 text-muted small"><i class="bi bi-credit-card"></i> {{ _('Deposit:') }} {{ "{:,.0f}".format(booking.deposit_amount) }} VND</p>
                 {% endif %}
                 <p class="mb-2 text-muted small"><i class="bi bi-wallet2"></i> {{ _('Balance:') }} {{ "{:,.0f}".format(booking.balance_due or 0) }} VND</p>
-                {% if payment_status == 'unpaid' and booking.payment_method == 'bank_transfer' %}
-                  <div class="mt-2">
-                    <a href="{{ url_for('booking.bank_transfer_instructions', lang=lang, booking_id=booking.id) }}" class="btn btn-sm btn-outline-success">
-                      <i class="bi bi-qr-code"></i> {{ _('Bank transfer instructions') }}
-                    </a>
-                  </div>
-                {% endif %}
               {% endif %}
               {% if booking.status != 'cancelled' and booking.hours_until_play is not none %}
                 <p class="mb-0 text-muted small"><i class="bi bi-hourglass-split"></i> {{ _('Time remaining') }}: {{ "{:.1f}".format(booking.hours_until_play) }} {{ _('hours') }}</p>
