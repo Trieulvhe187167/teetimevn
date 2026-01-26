@@ -723,7 +723,7 @@ def booking(lang):
                 client_ip_source = request.headers.get('X-Forwarded-For') or request.remote_addr or '127.0.0.1'
                 client_ip = client_ip_source.split(',')[0].strip()
                 return_url = url_for('payments.vnpay_return', _external=True, lang=lang, booking_id=booking_id)
-                ipn_url = current_app.config.get('VNPAY_IPN_URL') or url_for('payments.vnpay_ipn', _external=True)
+                ipn_url = current_app.config.get('VNPAY_IPN_URL')  # Only send IPN URL when explicitly configured/public
                 try:
                     payment_url = create_payment_url(
                         current_app,

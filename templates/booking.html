@@ -7,6 +7,16 @@
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 0.75rem;
   }
+  .slot-grid-wrapper {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+  @media (max-width: 576px) {
+    .slot-grid-wrapper {
+      max-height: 320px;
+    }
+  }
   .slot-card {
     border: 1px solid #dfe3e8;
     border-radius: 0.5rem;
@@ -120,13 +130,15 @@
                 <small class="text-muted" id="slot-hint">{{ _('Tap a slot to select. Availability updates live.') }}</small>
               </label>
               <input type="hidden" name="play_time" id="selected-time" required>
-              <div id="slot-grid" class="slot-grid">
-                {% for t in time_slots %}
-                  <button type="button" class="slot-card" data-time="{{ t }}">
-                    <div class="slot-time">{{ t }}</div>
-                    <div class="slot-availability text-muted">{{ _('Checking...') }}</div>
-                  </button>
-                {% endfor %}
+              <div class="slot-grid-wrapper">
+                <div id="slot-grid" class="slot-grid">
+                  {% for t in time_slots %}
+                    <button type="button" class="slot-card" data-time="{{ t }}">
+                      <div class="slot-time">{{ t }}</div>
+                      <div class="slot-availability text-muted">{{ _('Checking...') }}</div>
+                    </button>
+                  {% endfor %}
+                </div>
               </div>
             </div>
 

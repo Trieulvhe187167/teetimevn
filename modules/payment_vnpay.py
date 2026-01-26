@@ -6,9 +6,12 @@ from __future__ import annotations
 import hashlib
 import hmac
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Mapping, Optional
 from urllib.parse import quote_plus
+
+VNPAY_TZ = timezone(timedelta(hours=7))
+VNPAY_HASH_TYPE = 'HMACSHA512'
 
 
 def _sorted_pairs(data: Mapping[str, object]) -> Dict[str, object]:
@@ -45,6 +48,9 @@ def create_payment_url(
     hash_secret = app.config.get('VNPAY_HASH_SECRET')
     return_url = return_url or app.config.get('VNPAY_RETURN_URL')
     ipn_url = ipn_url or app.config.get('VNPAY_IPN_URL')
+    # VNPay rejects private or malformed callback URLs, so only send well-formed http(s) values
+    if ipn_url and not str(ipn_url).lower().startswith(('http://', 'https://')):
+        ipn_url = None
 
     if not payment_url or not tmn_code or not hash_secret:
         raise ValueError('VNPay configuration is incomplete. Please set VNPAY_TMN_CODE, VNPAY_HASH_SECRET and VNPAY_PAYMENT_URL.')
@@ -52,7 +58,7 @@ def create_payment_url(
         raise ValueError('VNPay return URL is not configured.')
 
     amount = int(round(amount))
-    now = datetime.utcnow()
+    now = datetime.now(VNPAY_TZ)
     payload = {
         'vnp_Version': '2.1.0',
         'vnp_Command': 'pay',
@@ -75,8 +81,12 @@ def create_payment_url(
     payload['vnp_ExpireDate'] = expire_at.strftime('%Y%m%d%H%M%S')
 
     query = _build_query_string(payload)
-    secure_hash = hmac.new(hash_secret.encode('utf-8'), query.encode('utf-8'), hashlib.sha512).hexdigest()
-    return f"{payment_url}?{query}&vnp_SecureHash={secure_hash}"
+    secure_hash = hmac.new(hash_secret.encode('utf-8'), query.encode('utf-8'), hashlib.sha512).hexdigest().upper()
+    return (
+        f"{payment_url}?{query}"
+        f"&vnp_SecureHashType={VNPAY_HASH_TYPE}"
+        f"&vnp_SecureHash={secure_hash}"
+    )
 
 
 def verify_vnpay_response(params: Mapping[str, object], hash_secret: str) -> bool:
